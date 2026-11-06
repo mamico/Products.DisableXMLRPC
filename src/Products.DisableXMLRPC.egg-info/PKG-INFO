@@ -1,0 +1,144 @@
+Metadata-Version: 2.1
+Name: Products.DisableXMLRPC
+Version: 1.0.0.dev0
+Summary: Backport of Zope 5.13's enable-xmlrpc switch: disable Zope's built-in XML-RPC support on Zope 2.13, 4 and 5 < 5.13
+Author: RedTurtle Technology
+Author-email: mauro.amico@redturtle.it
+License: ZPL 2.1
+Keywords: zope plone xmlrpc security
+Classifier: Development Status :: 4 - Beta
+Classifier: Environment :: Web Environment
+Classifier: Framework :: Zope
+Classifier: Framework :: Zope2
+Classifier: Framework :: Zope :: 4
+Classifier: Framework :: Zope :: 5
+Classifier: Framework :: Plone
+Classifier: License :: OSI Approved :: Zope Public License
+Classifier: Operating System :: OS Independent
+Classifier: Programming Language :: Python
+Classifier: Programming Language :: Python :: 2
+Classifier: Programming Language :: Python :: 2.7
+Classifier: Programming Language :: Python :: 3
+Classifier: Topic :: Security
+Requires-Python: >=2.7
+
+Products.DisableXMLRPC
+=====================
+
+Disable Zope's built-in XML-RPC support on older Zope versions.
+
+Zope 5.13 introduced the ``enable-xmlrpc`` directive in ``zope.conf``:
+when set to ``off``, every ``POST`` request with ``Content-Type: text/xml``
+(i.e. an XML-RPC call) is rejected with ``400 Bad Request: Unsupported
+request type``. XML-RPC is rarely used nowadays and is a common target
+for abuse (brute force, amplification, ...).
+
+This product backports the same behaviour to:
+
+* Zope2 2.13 (Plone 4.x, Python 2.7)
+* Zope 4.x (Plone 5.2, Python 2.7 and 3)
+* Zope 5.x < 5.13 (Plone 6.0 / 6.1, Python 3)
+
+On Zope >= 5.13 the product does nothing (it only logs a message): use the
+native directive instead::
+
+    enable-xmlrpc off
+
+
+How it works
+------------
+
+In all these versions ``HTTPRequest.processInputs`` uses the module global
+``ZPublisher.HTTPRequest.xmlrpc`` to parse XML-RPC calls. The product
+replaces it with a small proxy that raises ``zExceptions.BadRequest('Unsupported
+request type')`` when XML-RPC is disabled, and delegates to the original
+``ZPublisher.xmlrpc`` module otherwise. ``processInputs`` itself is not
+patched.
+
+The patch is applied when the product is imported, which Zope does at
+startup for every package in the ``Products`` namespace: no ZCML and no
+add-on activation are needed.
+
+
+Installation
+------------
+
+**XML-RPC is disabled as soon as the product is installed.**
+
+Buildout (Plone 4.x / 5.x)::
+
+    [instance]
+    eggs =
+        ...
+        Products.DisableXMLRPC
+
+pip::
+
+    pip install Products.DisableXMLRPC
+
+On Zope2 2.13 you can also simply copy the ``src/Products/DisableXMLRPC``
+folder into the instance ``products`` directory. This does not work on
+Zope 4/5 under WSGI, where the ``products`` directive no longer exists.
+
+At startup you should see in the log::
+
+    INFO Products.DisableXMLRPC XML-RPC support patched (currently disabled). ...
+
+
+Configuration
+-------------
+
+XML-RPC can be re-enabled, in order of precedence:
+
+1. with the ``ZOPE_ENABLE_XMLRPC`` environment variable
+   (``on``/``off``, ``true``/``false``, ``yes``/``no``, ``1``/``0``);
+
+2. with a ``product-config`` section in ``zope.conf``::
+
+       <product-config disable-xmlrpc>
+           enable-xmlrpc on
+       </product-config>
+
+   With ``plone.recipe.zope2instance``::
+
+       [instance]
+       zope-conf-additional =
+           <product-config disable-xmlrpc>
+               enable-xmlrpc on
+           </product-config>
+
+3. otherwise XML-RPC is **disabled**.
+
+
+Testing it
+----------
+
+::
+
+    curl -i -X POST -H 'Content-Type: text/xml' \
+        --data '<?xml version="1.0"?><methodCall><methodName>getId</methodName></methodCall>' \
+        http://localhost:8080/Plone
+
+returns ``400 Bad Request`` while XML-RPC is disabled.
+
+
+Running the tests
+-----------------
+
+::
+
+    tox
+
+Environments: ``py27-zope213`` (Zope2 2.13), ``py27-zope4``,
+``py38-zope4``, ``py311-zope512`` and ``py311-zope513`` (native support,
+the patch must not be applied).
+
+
+Changelog
+=========
+
+1.0.0 (unreleased)
+------------------
+
+- Initial release: backport of Zope 5.13's ``enable-xmlrpc`` directive
+  for Zope2 2.13, Zope 4 and Zope 5 < 5.13 (Python 2.7 and 3).
