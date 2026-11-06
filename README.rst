@@ -1,5 +1,5 @@
 Products.DisableXMLRPC
-=====================
+======================
 
 Disable Zope's built-in XML-RPC support on older Zope versions.
 

@@ -18,6 +18,7 @@ setup(
         "Backport of Zope 5.13's enable-xmlrpc switch: disable Zope's "
         "built-in XML-RPC support on Zope 2.13, 4 and 5 < 5.13"),
     long_description=long_description,
+    long_description_content_type='text/x-rst',
     classifiers=[
         'Development Status :: 4 - Beta',
         'Environment :: Web Environment',
