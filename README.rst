@@ -52,6 +52,8 @@ pip::
 
     pip install Products.DisableXMLRPC
 
+If buildout gives an error ``Couldn't find a distribution for 'Products.DisableXMLRPC'``, try with ``products-disablexmlrpc`` instead.
+
 On Zope2 2.13 you can also simply copy the ``src/Products/DisableXMLRPC``
 folder into the instance ``products`` directory. This does not work on
 Zope 4/5 under WSGI, where the ``products`` directive no longer exists.
