@@ -13,12 +13,20 @@ This product backports the same behaviour to:
 
 * Zope2 2.13 (Plone 4.x, Python 2.7)
 * Zope 4.x (Plone 5.2, Python 2.7 and 3)
-* Zope 5.x < 5.13 (Plone 6.0 / 6.1, Python 3)
+* Zope 5.x < 5.13 (Plone 6.0.0-6.0.14 / 6.1.0, Python 3)
 
-On Zope >= 5.13 the product does nothing (it only logs a message): use the
-native directive instead::
+On Zope >= 5.13 (Plone 6.0.15+, 6.1.1+) the product does nothing (it only logs a message).
+Use the native directive in ``zope.conf`` instead::
 
     enable-xmlrpc off
+
+With ``plone.recipe.zope2instance`` 8.0.0+ that would be::
+
+    [instance]
+    zope-conf-additional =
+        enable-xmlrpc off
+
+Since Zope 6.2 (Plone 6.2.2) XML-RPC is off by default.
 
 
 How it works
@@ -52,6 +60,8 @@ pip::
 
     pip install Products.DisableXMLRPC
 
+If buildout gives an error ``Couldn't find a distribution for 'Products.DisableXMLRPC'``, try with ``products-disablexmlrpc`` instead.
+
 On Zope2 2.13 you can also simply copy the ``src/Products/DisableXMLRPC``
 folder into the instance ``products`` directory. This does not work on
 Zope 4/5 under WSGI, where the ``products`` directive no longer exists.
@@ -63,6 +73,9 @@ At startup you should see in the log::
 
 Configuration
 -------------
+
+This section only shows how to configure ``Products.DisableXMLRPC``.
+If Zope already supports it, you must use the native ``enable-xmlrpc`` directive in ``zope.conf`` instead.
 
 XML-RPC can be re-enabled, in order of precedence:
 

@@ -55,6 +55,14 @@ def _product_config_value():
     return section.get(PRODUCT_CONFIG_KEY)
 
 
+def core_zope_value():
+    try:
+        from App.config import getConfiguration
+    except ImportError:  # pragma: no cover
+        return None
+    return getattr(getConfiguration(), 'enable_xmlrpc', None)
+
+
 def xmlrpc_enabled():
     """Return True if Zope's built-in XML-RPC support should be used.
 
@@ -110,9 +118,11 @@ def apply_patch():
     from ZPublisher import HTTPRequest
     if has_native_support():
         logger.info(
-            'Zope supports the "enable-xmlrpc" directive natively: '
+            'Zope supports the "enable-xmlrpc" directive natively (currently: %s): '
             'Products.DisableXMLRPC does nothing, use "enable-xmlrpc off" '
-            'in zope.conf instead.')
+            'in zope.conf instead.',
+            'on' if core_zope_value() else 'off',
+        ),
         return False
     if is_patched():
         return False
